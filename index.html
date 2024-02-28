@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphique avec Chart.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        canvas {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <h2>Graphique du module de H(p) avec Chart.js</h2>
+    <div>
+        <label for="av">Av (Gain en tension) en KHz:</label>
+        <input type="number" id="av" step="0.01" placeholder="Av en KHz">
+    </div>
+    <div>
+        <label for="fh">fh (Fréquence haute) en KHz:</label>
+        <input type="number" id="fh" step="0.01" placeholder="fh en KHz">
+    </div>
+    <div>
+        <label for="fmin">fmin (Fréquence minimale) en Hz:</label>
+        <input type="number" id="fmin" step="0.01" placeholder="fmin en Hz">
+    </div>
+    <div>
+        <label for="fmax">fmax (Fréquence maximale) en MHz:</label>
+        <input type="number" id="fmax" step="0.01" placeholder="fmax en MHz">
+    </div>
+    <div>
+        <button onclick="plot()">Plot</button>
+        <button onclick="reset()">Reset</button>
+    </div>
+    <canvas id="myChart" width="400" height="400"></canvas>
+
+    <script>
+        function plot() {
+            var av = parseFloat(document.getElementById('av').value) * 1e3; // Convertir KHz en Hz
+            var fh = parseFloat(document.getElementById('fh').value) * 1e3; // Convertir KHz en Hz
+            var fmin = parseFloat(document.getElementById('fmin').value);
+            var fmax = parseFloat(document.getElementById('fmax').value) * 1e6; // Convertir MHz en Hz
+
+            var frequencies = [];
+            var moduleDataDB = [];
+
+            for (var f = fmin; f <= fmax; f *= 2) {
+                frequencies.push(f);
+                var p = 2 * Math.PI * f;
+                moduleDataDB.push(20 * Math.log10(Math.abs((2 * Math.PI * av * fh) / (p + 2 * Math.PI * fh))));
+            }
+
+            var ctx = document.getElementById('myChart').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: frequencies,
+                    datasets: [{
+                        label: '|H(p)| (dB) reel',
+                        data: moduleDataDB,
+                        borderColor: 'blue',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        xAxes: [{
+                            type: 'logarithmic',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Frequency (Hz)'
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Magnitude (dB)'
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+
+        function reset() {
+            var ctx = document.getElementById('myChart').getContext('2d');
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        }
+    </script>
+</body>
+</html>
